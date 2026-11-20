@@ -1,0 +1,2152 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Health and Wellness Management System | UN SDG 3</title>
+  <!-- Tailwind CSS for responsive layout & utility classes -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Plus Jakarta Sans Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ==========================================================================
+       CUSTOM DESIGN TOKENS & LIGHT / DARK THEME VARIABLES (PURE CSS3)
+       ========================================================================== */
+    :root {
+      --bg-sidebar: #0F2C2A;
+      --accent-teal: #1B6B63;
+      --accent-mint: #22A699;
+      --accent-coral: #E85D75;
+      --bg-canvas: #FAF9F5;
+      --bg-card: #FFFFFF;
+      --bg-subtle: #F3F6F5;
+      --bg-input: #FFFFFF;
+      --border-color: rgba(15, 44, 42, 0.12);
+      --text-primary: #142826;
+      --text-muted: #526765;
+      --shadow-card: 0 2px 10px rgba(15, 44, 42, 0.04);
+    }
+
+    html.dark {
+      --bg-sidebar: #071312;
+      --accent-teal: #1B6B63;
+      --accent-mint: #22A699;
+      --accent-coral: #E85D75;
+      --bg-canvas: #0B1918;
+      --bg-card: #122624;
+      --bg-subtle: #183230;
+      --bg-input: #0D1E1C;
+      --border-color: rgba(255, 255, 255, 0.11);
+      --text-primary: #F0F7F6;
+      --text-muted: #9CB5B2;
+      --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.32);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* Theme-aware surface & text utilities */
+    .surface-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-card);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .surface-subtle {
+      background-color: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .theme-input {
+      background-color: var(--bg-input);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .theme-input:focus {
+      outline: none;
+      border-color: var(--accent-mint);
+      box-shadow: 0 0 0 3px rgba(34, 166, 153, 0.2);
+    }
+
+    .text-theme-primary {
+      color: var(--text-primary);
+    }
+
+    .text-theme-muted {
+      color: var(--text-muted);
+    }
+
+    .border-theme {
+      border-color: var(--border-color);
+    }
+
+    /* Smooth tab view fade-in transition */
+    .view-panel {
+      display: none;
+      animation: fadeSlideUp 0.28s ease-out forwards;
+    }
+
+    .view-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Animated progress bar fill */
+    .progress-fill {
+      transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Interactive water glass tile */
+    .water-glass-btn {
+      transition: all 0.2s ease;
+    }
+    .water-glass-btn:hover {
+      transform: translateY(-2px);
+    }
+    .water-glass-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Custom range slider styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(128, 150, 148, 0.3);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -6px;
+      background-color: #1B6B63;
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      border: 3px solid #FFFFFF;
+      box-shadow: 0 2px 6px rgba(15, 44, 42, 0.35);
+    }
+
+    /* Toast slide-in animation */
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(24px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    .toast-item {
+      animation: toastIn 0.25s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ==========================================================================
+       TOAST NOTIFICATION STACK (LIVE DEMO ALERTS & FEEDBACK)
+       ========================================================================== -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2.5 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
+
+  <!-- ==========================================================================
+       AUTHENTICATION GATEWAY SCREEN (SIGN IN / SIGN UP / DEMO ACCESS)
+       ========================================================================== -->
+  <div id="auth-screen" class="min-h-screen flex flex-col justify-between p-4 sm:p-8">
+    <!-- Auth Top Bar -->
+    <div class="max-w-6xl w-full mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#1B6B63] to-[#22A699] flex items-center justify-center shadow-md">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+        </div>
+        <div>
+          <span class="font-extrabold text-base tracking-tight block leading-none text-theme-primary">Smart Health &amp; Wellness</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#1B6B63]">UN SDG 3 • Community SDG</span>
+        </div>
+      </div>
+
+      <!-- Theme Toggle on Auth Screen -->
+      <button type="button" onclick="toggleTheme()" class="theme-toggle-btn px-3.5 py-2 rounded-xl surface-card text-theme-primary text-xs font-bold flex items-center gap-2 hover:opacity-90 transition" aria-label="Toggle Light/Dark Theme">
+        <span class="theme-icon-sun hidden">☀️ Light Mode</span>
+        <span class="theme-icon-moon">🌙 Dark Mode</span>
+      </button>
+    </div>
+
+    <!-- Auth Center Split Card -->
+    <div class="max-w-5xl w-full mx-auto my-8 grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden surface-card shadow-xl">
+      <!-- Left Hero Showcase -->
+      <div class="lg:col-span-6 bg-gradient-to-br from-[#0F2C2A] via-[#153E3B] to-[#1B6B63] text-white p-8 sm:p-10 flex flex-col justify-between">
+        <div>
+          <span class="inline-block px-3 py-1 rounded-full bg-white/10 text-[#22A699] text-xs font-bold uppercase tracking-wider mb-4">
+            Project-Based Learning • UN SDG 3
+          </span>
+          <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight">
+            Smart Health and Wellness Management System
+          </h1>
+          <p class="text-teal-100/90 text-sm mt-3 leading-relaxed">
+            An interactive preventive wellness companion designed to help students track hydration, sleep quality, physical exercise, and daily stress levels.
+          </p>
+
+          <div class="mt-6 space-y-3 text-xs text-teal-100">
+            <div class="flex items-center gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-[#22A699]/25 text-[#22A699] flex items-center justify-center font-bold">✓</span>
+              <span>Per-user isolated habit storage &amp; custom daily goals</span>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-[#22A699]/25 text-[#22A699] flex items-center justify-center font-bold">✓</span>
+              <span>BMI &amp; personalized hydration target calculator</span>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-[#22A699]/25 text-[#22A699] flex items-center justify-center font-bold">✓</span>
+              <span>7-day analytics chart &amp; downloadable CSV progress report</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 pt-5 border-t border-white/15">
+          <p class="text-[11px] uppercase tracking-wider font-bold text-[#E85D75] mb-2">Instant Evaluator Demo</p>
+          <button type="button" onclick="loginWithDemoAccount()" class="w-full py-3 px-4 rounded-xl bg-[#22A699] hover:bg-teal-400 text-[#0F2C2A] font-extrabold text-sm shadow-md transition active:scale-98">
+            Launch Demo Student Account (Aarav Sharma) →
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Sign In / Sign Up Forms -->
+      <div class="lg:col-span-6 p-8 sm:p-10 flex flex-col justify-center">
+        <!-- Auth Mode Switcher -->
+        <div class="grid grid-cols-2 gap-2 p-1.5 rounded-2xl surface-subtle mb-6">
+          <button type="button" id="tab-signin-btn" onclick="switchAuthMode('signin')" class="py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-[#0F2C2A] text-white shadow-xs transition">
+            Sign In
+          </button>
+          <button type="button" id="tab-signup-btn" onclick="switchAuthMode('signup')" class="py-2.5 rounded-xl text-xs sm:text-sm font-extrabold text-theme-muted hover:text-theme-primary transition">
+            Create Account
+          </button>
+        </div>
+
+        <!-- SIGN IN FORM -->
+        <form id="signin-form" class="space-y-4">
+          <div>
+            <h2 class="text-2xl font-extrabold text-theme-primary">Welcome Back</h2>
+            <p class="text-xs text-theme-muted mt-1">Sign in to access your personal wellness dashboard.</p>
+          </div>
+
+          <div>
+            <label for="signin-email" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1.5">Email Address</label>
+            <input id="signin-email" type="email" required value="aarav.student@campus.edu" placeholder="you@campus.edu" class="w-full px-4 py-3 rounded-xl theme-input text-sm font-semibold" />
+          </div>
+
+          <div>
+            <label for="signin-password" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1.5">Password</label>
+            <input id="signin-password" type="password" required value="wellness123" placeholder="••••••••" class="w-full px-4 py-3 rounded-xl theme-input text-sm font-semibold" />
+          </div>
+
+          <p id="signin-error" class="text-xs font-bold text-[#E85D75] hidden"></p>
+
+          <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-[#1B6B63] hover:bg-[#0F2C2A] text-white font-extrabold text-sm shadow-sm transition">
+            Sign In to Dashboard
+          </button>
+
+          <p class="text-center text-xs text-theme-muted pt-2">
+            Demo credentials pre-filled: <strong>aarav.student@campus.edu</strong> / <strong>wellness123</strong>
+          </p>
+        </form>
+
+        <!-- SIGN UP FORM -->
+        <form id="signup-form" class="space-y-4 hidden">
+          <div>
+            <h2 class="text-2xl font-extrabold text-theme-primary">Create Student Account</h2>
+            <p class="text-xs text-theme-muted mt-1">Register a new profile with isolated habit &amp; goal tracking.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="signup-name" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1">Full Name</label>
+              <input id="signup-name" type="text" required placeholder="e.g., Priya Verma" class="w-full px-3.5 py-2.5 rounded-xl theme-input text-sm font-semibold" />
+            </div>
+            <div>
+              <label for="signup-role" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1">Department / Role</label>
+              <input id="signup-role" type="text" placeholder="e.g., B.Tech CSE Sem 4" class="w-full px-3.5 py-2.5 rounded-xl theme-input text-sm font-semibold" />
+            </div>
+          </div>
+
+          <div>
+            <label for="signup-email" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1">Email Address</label>
+            <input id="signup-email" type="email" required placeholder="priya@campus.edu" class="w-full px-3.5 py-2.5 rounded-xl theme-input text-sm font-semibold" />
+          </div>
+
+          <div>
+            <label for="signup-password" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1">Create Password</label>
+            <input id="signup-password" type="password" required minlength="4" placeholder="Minimum 4 characters" class="w-full px-3.5 py-2.5 rounded-xl theme-input text-sm font-semibold" />
+          </div>
+
+          <p id="signup-error" class="text-xs font-bold text-[#E85D75] hidden"></p>
+
+          <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-[#0F2C2A] hover:bg-[#1B6B63] text-white font-extrabold text-sm shadow-sm transition">
+            Create Account &amp; Start Tracking
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Auth Screen Ethical Disclaimer -->
+    <p class="text-center text-xs text-theme-muted max-w-3xl mx-auto">
+      <strong>Preventive Health Awareness &amp; Lifestyle Management Only:</strong> Supports UN SDG 3 daily wellness habits and does not diagnose conditions or replace professional medical advice.
+    </p>
+  </div>
+
+  <!-- ==========================================================================
+       AUTHENTICATED APPLICATION SHELL
+       ========================================================================== -->
+  <div id="app-shell" class="hidden min-h-screen flex-col lg:flex-row">
+    <!-- MOBILE TOP HEADER BAR -->
+    <header class="lg:hidden bg-[#0F2C2A] text-white px-4 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-md">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#1B6B63] flex items-center justify-center border border-white/10">
+          <svg class="w-5 h-5 text-[#E85D75]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+        </div>
+        <div>
+          <span class="font-extrabold text-sm tracking-tight block leading-none">SmartWellness</span>
+          <span class="text-[10px] uppercase tracking-widest text-[#22A699] font-bold">UN SDG 3 • Preventive Care</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="toggleTheme()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition" aria-label="Toggle Theme">
+          <span class="theme-icon-sun hidden">☀️</span>
+          <span class="theme-icon-moon">🌙</span>
+        </button>
+        <button id="mobile-menu-btn" type="button" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition" aria-label="Toggle navigation">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- MOBILE OVERLAY BACKDROP -->
+    <div id="mobile-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden backdrop-blur-xs"></div>
+
+    <!-- LEFT NAVIGATION SIDEBAR -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 bg-[#0F2C2A] text-[#FAF9F5] flex flex-col justify-between transform -translate-x-full lg:translate-x-0 lg:static transition-transform duration-300 ease-in-out shrink-0">
+      <div>
+        <!-- Brand Identity -->
+        <div class="p-6 border-b border-white/10">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#1B6B63] to-[#22A699] flex items-center justify-center shadow-lg">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2" />
+              </svg>
+            </div>
+            <div>
+              <h1 class="font-extrabold text-base tracking-tight leading-snug text-white">Smart Health &amp; Wellness</h1>
+              <p class="text-xs text-teal-200/80 font-medium">Management System</p>
+            </div>
+          </div>
+
+          <div class="mt-4 px-3 py-2 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#E85D75]">Community SDG</span>
+            <span class="text-[11px] font-bold text-[#22A699] bg-[#1B6B63]/40 px-2 py-0.5 rounded-md">UN SDG 3</span>
+          </div>
+        </div>
+
+        <!-- Navigation Menu Links -->
+        <nav class="p-4 space-y-1.5" aria-label="Main Navigation">
+          <button type="button" data-tab="dashboard" class="nav-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all bg-[#1B6B63] text-white shadow-md">
+            <svg class="w-5 h-5 text-[#22A699]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" />
+            </svg>
+            <span>Dashboard</span>
+          </button>
+
+          <button type="button" data-tab="loggers" class="nav-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-teal-100/80 hover:bg-white/5 hover:text-white">
+            <svg class="w-5 h-5 text-teal-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+            </svg>
+            <span>Daily Habit Loggers</span>
+          </button>
+
+          <button type="button" data-tab="goals" class="nav-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-teal-100/80 hover:bg-white/5 hover:text-white">
+            <svg class="w-5 h-5 text-teal-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
+            </svg>
+            <span>Goals &amp; Smart Reminders</span>
+          </button>
+
+          <button type="button" data-tab="reports" class="nav-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-teal-100/80 hover:bg-white/5 hover:text-white">
+            <svg class="w-5 h-5 text-teal-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
+            <span>Weekly Progress Report</span>
+          </button>
+
+          <button type="button" data-tab="profile" class="nav-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-teal-100/80 hover:bg-white/5 hover:text-white">
+            <svg class="w-5 h-5 text-teal-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>BMI &amp; Nutrition Calc</span>
+          </button>
+
+          <button type="button" data-tab="tips" class="nav-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-teal-100/80 hover:bg-white/5 hover:text-white">
+            <svg class="w-5 h-5 text-teal-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            <span>Preventive Wellness Tips</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Sidebar Active User Card + Sign Out -->
+      <div class="p-4 m-4 rounded-2xl bg-white/5 border border-white/10">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-teal-200">Daily Wellness Score</span>
+          <span id="sidebar-score-text" class="text-sm font-extrabold text-[#22A699]">0%</span>
+        </div>
+        <div class="w-full h-2 bg-black/35 rounded-full overflow-hidden">
+          <div id="sidebar-score-bar" class="progress-fill h-full bg-gradient-to-r from-[#22A699] to-[#E85D75]" style="width: 0%"></div>
+        </div>
+
+        <div class="mt-3 pt-3 border-t border-white/10 flex items-center gap-2.5">
+          <div id="sidebar-avatar" class="w-9 h-9 rounded-full bg-[#1B6B63] flex items-center justify-center font-extrabold text-xs text-white shrink-0">
+            AS
+          </div>
+          <div class="min-w-0 flex-1">
+            <p id="sidebar-user-name" class="text-xs font-bold text-white truncate">Aarav Sharma</p>
+            <p id="sidebar-user-role" class="text-[11px] text-teal-200/75 truncate">Student Profile</p>
+          </div>
+        </div>
+
+        <button type="button" onclick="signOutUser()" class="mt-3 w-full py-2 px-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/30 text-rose-200 text-xs font-bold flex items-center justify-center gap-1.5 transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Persistent Top Header -->
+      <header class="surface-card border-x-0 border-t-0 px-6 lg:px-10 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div class="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider">
+            <span class="px-2.5 py-0.5 rounded-md bg-[#0F2C2A] text-[#22A699]">UN SDG 3: Good Health &amp; Well-Being</span>
+            <span class="text-theme-muted">•</span>
+            <span id="header-date" class="text-theme-muted">Today</span>
+          </div>
+          <h2 id="page-heading" class="text-2xl sm:text-3xl font-extrabold text-theme-primary mt-1">Dashboard</h2>
+        </div>
+
+        <!-- Header Quick Actions + Theme Toggle + Sign Out -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button type="button" onclick="toggleTheme()" class="theme-toggle-btn px-3.5 py-2.5 rounded-xl surface-subtle text-theme-primary font-bold text-xs sm:text-sm flex items-center gap-1.5 hover:opacity-85 transition active:scale-95" title="Switch Light/Dark Theme">
+            <span class="theme-icon-sun hidden">☀️ Light</span>
+            <span class="theme-icon-moon">🌙 Dark</span>
+          </button>
+
+          <button id="header-add-water-btn" type="button" class="px-4 py-2.5 rounded-xl bg-[#1B6B63] hover:bg-[#0F2C2A] text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-xs transition active:scale-95">
+            <svg class="w-4 h-4 text-[#22A699]" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>+1 Glass Water</span>
+          </button>
+
+          <button id="header-reset-btn" type="button" class="px-3.5 py-2.5 rounded-xl surface-subtle text-theme-primary font-bold text-xs sm:text-sm flex items-center gap-1.5 hover:opacity-85 transition active:scale-95" title="Reset sample data">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Reset Data</span>
+          </button>
+
+          <button type="button" onclick="signOutUser()" class="px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-[#E85D75] font-bold text-xs sm:text-sm transition active:scale-95">
+            Sign Out
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Dynamic View Container -->
+      <main class="flex-1 p-6 lg:p-10 max-w-7xl w-full mx-auto">
+
+        <!-- ====================================================================
+             VIEW 1: DASHBOARD (LIVE KPI OVERVIEW, MOOD CHECK-IN & SNAPSHOTS)
+             ==================================================================== -->
+        <section id="view-dashboard" class="view-panel active space-y-6">
+          <!-- Hero Welcome Banner -->
+          <div class="rounded-3xl bg-gradient-to-r from-[#0F2C2A] via-[#153E3B] to-[#1B6B63] text-white p-6 sm:p-8 shadow-lg">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div class="max-w-2xl">
+                <span class="inline-block px-3 py-1 rounded-full bg-white/10 text-[#22A699] text-xs font-bold uppercase tracking-wider mb-2.5">
+                  Preventive Lifestyle Companion • UN SDG 3
+                </span>
+                <h3 id="dashboard-welcome-title" class="text-xl sm:text-2xl font-extrabold leading-snug">
+                  Welcome back! Stay consistent with your daily hydration, rest, and movement goals.
+                </h3>
+                <p class="text-teal-100/85 text-xs sm:text-sm mt-2 leading-relaxed">
+                  Track daily habits, check in on your academic stress levels, and use personalized nutrition targets to sustain peak campus well-being.
+                </p>
+              </div>
+
+              <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-5 text-center shrink-0 min-w-[170px]">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-amber-300">Overall Score</span>
+                <p id="kpi-overall-score" class="text-4xl font-black text-white mt-1">0%</p>
+                <div class="w-full h-2 bg-black/30 rounded-full overflow-hidden mt-2.5">
+                  <div id="kpi-overall-bar" class="progress-fill h-full bg-[#22A699]" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3 Core Habit Progress Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Water KPI -->
+            <div class="surface-card rounded-2xl p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-500 text-xs font-bold">Hydration</span>
+                  <span id="kpi-water-pct" class="text-xs font-extrabold text-sky-500">0%</span>
+                </div>
+                <div class="mt-4 flex items-baseline gap-2">
+                  <span id="kpi-water-val" class="text-3xl font-black text-theme-primary">0</span>
+                  <span id="kpi-water-target" class="text-xs font-semibold text-theme-muted">/ 8 glasses</span>
+                </div>
+                <p id="kpi-water-liters" class="text-xs text-theme-muted mt-1">0.00 L consumed</p>
+                <div class="w-full h-2.5 surface-subtle rounded-full overflow-hidden mt-4">
+                  <div id="kpi-water-bar" class="progress-fill h-full bg-sky-500 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+              <div class="mt-5 pt-4 border-t border-theme flex items-center gap-2">
+                <button type="button" onclick="adjustWater(-1)" class="px-3 py-2 rounded-xl surface-subtle text-theme-primary font-bold text-xs hover:opacity-80 transition">-1</button>
+                <button type="button" onclick="adjustWater(1)" class="flex-1 py-2 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs transition">+1 Glass (250ml)</button>
+              </div>
+            </div>
+
+            <!-- Sleep KPI -->
+            <div class="surface-card rounded-2xl p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-400 text-xs font-bold">Sleep Duration</span>
+                  <span id="kpi-sleep-pct" class="text-xs font-extrabold text-indigo-400">0%</span>
+                </div>
+                <div class="mt-4 flex items-baseline gap-2">
+                  <span id="kpi-sleep-val" class="text-3xl font-black text-theme-primary">0h</span>
+                  <span id="kpi-sleep-target" class="text-xs font-semibold text-theme-muted">/ 8h target</span>
+                </div>
+                <p id="kpi-sleep-quality" class="text-xs text-theme-muted mt-1">Good</p>
+                <div class="w-full h-2.5 surface-subtle rounded-full overflow-hidden mt-4">
+                  <div id="kpi-sleep-bar" class="progress-fill h-full bg-indigo-500 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+              <div class="mt-5 pt-4 border-t border-theme">
+                <button type="button" onclick="switchTab('loggers')" class="w-full py-2 px-3 rounded-xl surface-subtle text-indigo-400 font-bold text-xs hover:opacity-85 transition">
+                  Log Sleep Hours →
+                </button>
+              </div>
+            </div>
+
+            <!-- Exercise KPI -->
+            <div class="surface-card rounded-2xl p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-500 text-xs font-bold">Physical Activity</span>
+                  <span id="kpi-exercise-pct" class="text-xs font-extrabold text-emerald-500">0%</span>
+                </div>
+                <div class="mt-4 flex items-baseline gap-2">
+                  <span id="kpi-exercise-val" class="text-3xl font-black text-theme-primary">0m</span>
+                  <span id="kpi-exercise-target" class="text-xs font-semibold text-theme-muted">/ 45m target</span>
+                </div>
+                <p id="kpi-exercise-count" class="text-xs text-theme-muted mt-1">0 session(s) today</p>
+                <div class="w-full h-2.5 surface-subtle rounded-full overflow-hidden mt-4">
+                  <div id="kpi-exercise-bar" class="progress-fill h-full bg-[#22A699] rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+              <div class="mt-5 pt-4 border-t border-theme flex items-center gap-2">
+                <button type="button" onclick="quickLogWalk()" class="flex-1 py-2 px-3 rounded-xl bg-[#1B6B63] hover:bg-[#0F2C2A] text-white font-bold text-xs transition">
+                  +15m Quick Walk
+                </button>
+                <button type="button" onclick="switchTab('loggers')" class="px-3 py-2 rounded-xl surface-subtle text-theme-primary font-bold text-xs hover:opacity-85 transition">
+                  More
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daily Mood & Stress Check-In -->
+          <div class="surface-card rounded-2xl p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+              <div>
+                <h4 class="text-base font-extrabold text-theme-primary">Daily Mood &amp; Academic Stress Check-In</h4>
+                <p id="mood-status-caption" class="text-xs text-theme-muted">Current state: 😌 Calm &amp; Focused</p>
+              </div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#22A699]">Mental Well-Being Monitor</span>
+            </div>
+            <div id="mood-selector-group" class="flex flex-wrap gap-2.5"></div>
+          </div>
+
+          <!-- Bottom Snapshot Row: Today's Workouts & Smart Reminders -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="surface-card rounded-2xl p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="text-base font-extrabold text-theme-primary">Today’s Exercise Sessions</h4>
+                <button type="button" onclick="switchTab('loggers')" class="text-xs font-bold text-[#22A699] hover:underline">+ Add Session</button>
+              </div>
+              <div id="dashboard-workout-list" class="space-y-3"></div>
+            </div>
+
+            <div class="surface-card rounded-2xl p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="text-base font-extrabold text-theme-primary">Active Habit Reminders</h4>
+                <button type="button" onclick="switchTab('goals')" class="text-xs font-bold text-[#E85D75] hover:underline">Configure</button>
+              </div>
+              <div id="dashboard-reminders-list" class="space-y-3"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             VIEW 2: DAILY HABIT LOGGERS (HYDRATION, SLEEP, EXERCISE)
+             ==================================================================== -->
+        <section id="view-loggers" class="view-panel space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 1. Hydration Logger -->
+            <div class="surface-card rounded-2xl p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 class="text-lg font-extrabold text-theme-primary">Hydration Tracker</h3>
+                    <p class="text-xs text-theme-muted">Click any glass tile to toggle intake</p>
+                  </div>
+                  <span id="logger-water-badge" class="px-3 py-1 rounded-xl bg-sky-500/15 text-sky-500 text-xs font-extrabold">0 / 8 Glasses</span>
+                </div>
+                <div id="water-glasses-grid" class="grid grid-cols-4 gap-2.5 my-5"></div>
+              </div>
+              <div class="flex items-center gap-3 pt-4 border-t border-theme">
+                <button type="button" onclick="adjustWater(-1)" class="px-4 py-2.5 rounded-xl surface-subtle text-theme-primary font-bold text-xs hover:opacity-85 transition">-1 Glass</button>
+                <button type="button" onclick="adjustWater(1)" class="flex-1 py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs transition">+1 Glass (250ml)</button>
+              </div>
+            </div>
+
+            <!-- 2. Sleep Logger -->
+            <div class="surface-card rounded-2xl p-6 flex flex-col justify-between">
+              <form id="sleep-form" class="space-y-4">
+                <div>
+                  <h3 class="text-lg font-extrabold text-theme-primary">Sleep Duration Monitor</h3>
+                  <p class="text-xs text-theme-muted">Log last night’s restorative sleep</p>
+                </div>
+
+                <div class="p-4 rounded-2xl surface-subtle">
+                  <div class="flex items-center justify-between mb-2">
+                    <label for="sleep-hours-slider" class="text-xs font-bold uppercase text-theme-muted">Hours Slept</label>
+                    <span id="sleep-slider-display" class="text-lg font-black text-indigo-400">7.5 hrs</span>
+                  </div>
+                  <input id="sleep-hours-slider" type="range" min="3" max="12" step="0.5" value="7.5" class="w-full" />
+                </div>
+
+                <div>
+                  <label for="sleep-quality-select" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1.5">Sleep Quality</label>
+                  <select id="sleep-quality-select" class="w-full px-4 py-2.5 rounded-xl theme-input font-semibold text-sm">
+                    <option value="Deep & Restorative">Deep &amp; Restorative</option>
+                    <option value="Good" selected>Good</option>
+                    <option value="Light / Interrupted">Light / Interrupted</option>
+                    <option value="Sleep Deprived">Sleep Deprived (Exam Night)</option>
+                  </select>
+                </div>
+
+                <div id="sleep-feedback-box" class="p-3.5 rounded-xl surface-subtle text-xs text-theme-muted leading-relaxed">
+                  Great recovery! Consistent 7–8.5 hour sleep cycles boost academic memory retention.
+                </div>
+
+                <button type="submit" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition">
+                  Save Sleep Record
+                </button>
+              </form>
+            </div>
+
+            <!-- 3. Exercise Logger -->
+            <div class="surface-card rounded-2xl p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 class="text-lg font-extrabold text-theme-primary">Exercise Logger</h3>
+                    <p class="text-xs text-theme-muted">Record daily physical movement</p>
+                  </div>
+                  <span id="logger-exercise-total" class="px-3 py-1 rounded-xl bg-emerald-500/15 text-emerald-500 text-xs font-extrabold">0 mins total</span>
+                </div>
+
+                <form id="exercise-form" class="space-y-3">
+                  <div>
+                    <label for="exercise-type" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1">Activity Type</label>
+                    <select id="exercise-type" class="w-full px-3.5 py-2.5 rounded-xl theme-input font-semibold text-sm">
+                      <option value="Brisk Walking">Brisk Walking</option>
+                      <option value="Running / Jogging">Running / Jogging</option>
+                      <option value="Gym / Strength Training">Gym / Strength Training</option>
+                      <option value="Yoga / Stretching">Yoga / Stretching</option>
+                      <option value="Cycling">Cycling</option>
+                      <option value="Campus Sports">Campus Sports</option>
+                    </select>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label for="exercise-duration" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1">Duration (mins)</label>
+                      <input id="exercise-duration" type="number" min="5" max="240" value="30" required class="w-full px-3.5 py-2 rounded-xl theme-input font-bold text-sm" />
+                    </div>
+                    <div>
+                      <label for="exercise-intensity" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1">Intensity</label>
+                      <select id="exercise-intensity" class="w-full px-3.5 py-2 rounded-xl theme-input font-semibold text-sm">
+                        <option value="Low">Low</option>
+                        <option value="Moderate" selected>Moderate</option>
+                        <option value="Vigorous">Vigorous</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-[#1B6B63] hover:bg-[#0F2C2A] text-white font-bold text-sm transition">
+                    + Log Workout Session
+                  </button>
+                </form>
+
+                <div class="mt-4 pt-4 border-t border-theme">
+                  <p class="text-xs font-bold uppercase tracking-wider text-theme-muted mb-2">Today’s Sessions</p>
+                  <div id="logger-workout-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             VIEW 3: GOALS & SMART REMINDERS
+             ==================================================================== -->
+        <section id="view-goals" class="view-panel space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Custom Daily Goals -->
+            <div class="lg:col-span-5 surface-card rounded-2xl p-6 h-fit">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#22A699]">Personalization</span>
+              <h3 class="text-xl font-extrabold text-theme-primary mt-0.5 mb-4">Customize Daily Wellness Goals</h3>
+
+              <form id="goals-form" class="space-y-4">
+                <div>
+                  <label for="goal-water-input" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1.5">
+                    Daily Water Target (Glasses of 250ml)
+                  </label>
+                  <input id="goal-water-input" type="number" min="1" max="20" value="8" required class="w-full px-4 py-2.5 rounded-xl theme-input font-bold text-base" />
+                </div>
+
+                <div>
+                  <label for="goal-sleep-input" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1.5">
+                    Nightly Sleep Target (Hours)
+                  </label>
+                  <input id="goal-sleep-input" type="number" step="0.5" min="4" max="14" value="8" required class="w-full px-4 py-2.5 rounded-xl theme-input font-bold text-base" />
+                </div>
+
+                <div>
+                  <label for="goal-exercise-input" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1.5">
+                    Daily Exercise Target (Minutes)
+                  </label>
+                  <input id="goal-exercise-input" type="number" min="10" max="240" value="45" required class="w-full px-4 py-2.5 rounded-xl theme-input font-bold text-base" />
+                </div>
+
+                <button type="submit" class="w-full py-3 px-4 rounded-xl bg-[#0F2C2A] hover:bg-[#1B6B63] text-white font-bold text-sm transition">
+                  Save Custom Wellness Targets
+                </button>
+              </form>
+            </div>
+
+            <!-- Smart Habit Reminders Manager -->
+            <div class="lg:col-span-7 surface-card rounded-2xl p-6">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#E85D75]">Behavioral Nudges</span>
+              <h3 class="text-xl font-extrabold text-theme-primary mt-0.5 mb-4">Smart Habit Reminders</h3>
+
+              <form id="add-reminder-form" class="p-4 rounded-2xl surface-subtle mb-5 grid grid-cols-1 sm:grid-cols-12 gap-3">
+                <input id="reminder-title-input" type="text" placeholder="Reminder label (e.g., Drink Water)" required class="sm:col-span-6 px-3.5 py-2 rounded-xl theme-input text-sm font-semibold" />
+                <input id="reminder-time-input" type="text" value="06:00 PM" required class="sm:col-span-3 px-3.5 py-2 rounded-xl theme-input text-sm font-semibold" />
+                <button type="submit" class="sm:col-span-3 py-2 px-4 rounded-xl bg-[#1B6B63] hover:bg-[#0F2C2A] text-white font-bold text-xs transition">
+                  + Add Nudge
+                </button>
+              </form>
+
+              <div id="reminders-manager-list" class="space-y-3"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             VIEW 4: WEEKLY PROGRESS REPORT & CSV EXPORT
+             ==================================================================== -->
+        <section id="view-reports" class="view-panel space-y-6">
+          <div class="surface-card rounded-2xl p-6 sm:p-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-[#22A699]">7-Day Behavioral Analytics</span>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-theme-primary mt-0.5">Weekly Progress Report</h3>
+                <p class="text-xs text-theme-muted mt-0.5">Comparing Monday–Saturday history with your live Sunday (Today) logs</p>
+              </div>
+
+              <button type="button" onclick="exportWeeklyCSV()" class="px-4 py-2.5 rounded-xl bg-[#0F2C2A] hover:bg-[#1B6B63] text-white font-bold text-xs sm:text-sm transition self-start sm:self-center">
+                ↓ Export CSV Report
+              </button>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex flex-wrap items-center gap-4 text-xs font-bold mb-4">
+              <span class="flex items-center gap-1.5 text-sky-500"><span class="w-3 h-3 rounded-xs bg-sky-500 inline-block"></span> Hydration %</span>
+              <span class="flex items-center gap-1.5 text-indigo-400"><span class="w-3 h-3 rounded-xs bg-indigo-500 inline-block"></span> Sleep %</span>
+              <span class="flex items-center gap-1.5 text-[#22A699]"><span class="w-3 h-3 rounded-xs bg-[#22A699] inline-block"></span> Exercise %</span>
+            </div>
+
+            <!-- 7-Day Bar Chart -->
+            <div id="weekly-bar-chart" class="grid grid-cols-7 gap-2 sm:gap-4 items-end pt-6 pb-3 border-b border-theme min-h-[240px]"></div>
+
+            <!-- Tabular Breakdown -->
+            <div class="mt-6 overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                <thead>
+                  <tr class="border-b border-theme text-[11px] uppercase tracking-wider text-theme-muted">
+                    <th class="py-3 px-4">Day</th>
+                    <th class="py-3 px-4">Water Intake</th>
+                    <th class="py-3 px-4">Sleep Duration</th>
+                    <th class="py-3 px-4">Exercise</th>
+                    <th class="py-3 px-4">Score</th>
+                    <th class="py-3 px-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="weekly-breakdown-tbody" class="divide-y border-theme"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             VIEW 5: BMI, PROTEIN & CREATINE HYDRATION CALCULATOR
+             ==================================================================== -->
+        <section id="view-profile" class="view-panel space-y-6">
+          <!-- ROW 1: BMI & BASE HYDRATION CALCULATOR -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Profile Info & BMI Calculator Form -->
+            <div class="lg:col-span-6 surface-card rounded-2xl p-6">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#22A699]">Preventive Health Screening</span>
+              <h3 class="text-xl font-extrabold text-theme-primary mt-0.5">BMI &amp; Base Hydration Calculator</h3>
+              <p class="text-xs text-theme-muted mt-1 mb-5">
+                Calculate your Body Mass Index (BMI) and baseline daily water intake from your height and weight.
+              </p>
+
+              <form id="bmi-form" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="profile-height" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1.5">
+                      Height (cm)
+                    </label>
+                    <input id="profile-height" type="number" min="100" max="240" required value="174" class="w-full px-4 py-2.5 rounded-xl theme-input font-bold text-base" />
+                  </div>
+                  <div>
+                    <label for="profile-weight" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1.5">
+                      Weight (kg)
+                    </label>
+                    <input id="profile-weight" type="number" min="30" max="200" required value="68" class="w-full px-4 py-2.5 rounded-xl theme-input font-bold text-base" />
+                  </div>
+                </div>
+
+                <button type="submit" class="w-full py-3 px-4 rounded-xl bg-[#1B6B63] hover:bg-[#0F2C2A] text-white font-bold text-sm shadow-xs transition">
+                  Calculate BMI &amp; Save Body Metrics
+                </button>
+              </form>
+            </div>
+
+            <!-- BMI Result & Auto-Apply Base Hydration Target Card -->
+            <div class="lg:col-span-6 surface-card rounded-2xl p-6 flex flex-col justify-between">
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-[#E85D75]">Computed Body Baseline</span>
+                <h3 class="text-xl font-extrabold text-theme-primary mt-0.5">Your BMI &amp; Base Water Metrics</h3>
+
+                <div class="grid grid-cols-2 gap-4 my-5">
+                  <div class="p-4 rounded-2xl surface-subtle">
+                    <p class="text-xs font-bold uppercase text-theme-muted">Calculated BMI</p>
+                    <p id="bmi-value-display" class="text-3xl font-black text-theme-primary mt-1">22.5</p>
+                    <span id="bmi-category-badge" class="inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-500">
+                      Normal Weight
+                    </span>
+                  </div>
+
+                  <div class="p-4 rounded-2xl surface-subtle">
+                    <p class="text-xs font-bold uppercase text-theme-muted">Base Water Need</p>
+                    <p id="recommended-water-display" class="text-3xl font-black text-sky-500 mt-1">9 Glasses</p>
+                    <p id="recommended-liters-display" class="text-xs text-theme-muted mt-1">~2.25 Liters / day</p>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" onclick="applyRecommendedHydration()" class="w-full py-3 px-4 rounded-xl bg-[#0F2C2A] hover:bg-[#1B6B63] text-white font-bold text-sm transition">
+                Apply Base Water Goal (Without Creatine) →
+              </button>
+            </div>
+          </div>
+
+          <!-- ROW 2: DAILY PROTEIN & CREATINE HYDRATION CALCULATOR -->
+          <div class="surface-card rounded-2xl p-6 sm:p-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-5 border-b border-theme">
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-[#E85D75]">Sports &amp; Student Nutrition</span>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-theme-primary mt-0.5">
+                  Daily Protein &amp; Creatine Hydration Calculator
+                </h3>
+                <p class="text-xs text-theme-muted mt-1">
+                  Tailor your daily protein target by fitness goal and adjust daily water intake if supplementing with Creatine Monohydrate.
+                </p>
+              </div>
+              <span id="nutrition-weight-pill" class="px-3.5 py-1.5 rounded-xl surface-subtle text-xs font-extrabold text-[#22A699] self-start md:self-center">
+                Synced Body Weight: 68 kg
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+              <!-- Left Inputs (5 Cols) -->
+              <div class="lg:col-span-5 space-y-4">
+                <div>
+                  <label for="protein-goal-select" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1.5">
+                    Fitness / Activity Goal
+                  </label>
+                  <select id="protein-goal-select" class="w-full px-4 py-3 rounded-xl theme-input font-semibold text-sm">
+                    <option value="sedentary">Sedentary / General Wellness (0.8g – 1.0g/kg)</option>
+                    <option value="active" selected>Active Student / Light Exercise (1.2g – 1.4g/kg)</option>
+                    <option value="strength">Strength Training / Muscle Gain (1.6g – 2.0g/kg)</option>
+                    <option value="fatloss">Fat Loss / High-Protein Deficit (1.8g – 2.2g/kg)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="creatine-phase-select" class="block text-xs font-bold uppercase tracking-wider text-theme-muted mb-1.5">
+                    Creatine Monohydrate Supplementation
+                  </label>
+                  <select id="creatine-phase-select" class="w-full px-4 py-3 rounded-xl theme-input font-semibold text-sm">
+                    <option value="none" selected>None (No Creatine Supplementation)</option>
+                    <option value="maintenance">Maintenance Phase (3–5g/day • +600ml water)</option>
+                    <option value="loading">Loading Phase (15–20g/day • +1000ml water)</option>
+                  </select>
+                </div>
+
+                <!-- Evidence-Based Educational Note -->
+                <div class="p-4 rounded-2xl surface-subtle border-l-4 border-[#22A699]">
+                  <p class="text-xs font-extrabold text-theme-primary mb-1">Why Creatine Increases Water Needs:</p>
+                  <p class="text-xs text-theme-muted leading-relaxed">
+                    Creatine is an osmolyte that draws water intracellularly into skeletal muscle fibers to support ATP energy regeneration and cell volumization. Increasing daily fluid intake by <strong>500–1000ml</strong> prevents mild dehydration, muscle cramping, and supports comfortable renal clearance.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Right Live Calculated Outputs & Sync CTA (7 Cols) -->
+              <div class="lg:col-span-7 flex flex-col justify-between space-y-5">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <!-- Card A: Daily Protein Range -->
+                  <div class="p-4 rounded-2xl surface-subtle flex flex-col justify-between">
+                    <div>
+                      <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-500">Daily Protein Target</span>
+                      <p id="protein-range-display" class="text-2xl font-black text-theme-primary mt-1.5">82g – 95g</p>
+                      <p class="text-[11px] font-semibold text-theme-muted mt-0.5">grams / day</p>
+                    </div>
+                    <p id="protein-meal-split" class="text-xs font-bold text-[#22A699] mt-3 pt-2.5 border-t border-theme">
+                      ~22g across 4 meals
+                    </p>
+                  </div>
+
+                  <!-- Card B: Creatine Dose & Extra Water -->
+                  <div class="p-4 rounded-2xl surface-subtle flex flex-col justify-between">
+                    <div>
+                      <span class="text-[11px] font-bold uppercase tracking-wider text-[#E85D75]">Creatine Adjustment</span>
+                      <p id="creatine-dose-display" class="text-2xl font-black text-theme-primary mt-1.5">0g / day</p>
+                      <p id="creatine-extra-water-display" class="text-xs font-bold text-[#E85D75] mt-0.5">+0 ml extra water</p>
+                    </div>
+                    <p id="creatine-phase-caption" class="text-[11px] text-theme-muted mt-3 pt-2.5 border-t border-theme">
+                      Standard baseline hydration
+                    </p>
+                  </div>
+
+                  <!-- Card C: Combined Total Daily Water Target -->
+                  <div class="p-4 rounded-2xl surface-subtle border border-sky-500/30 flex flex-col justify-between">
+                    <div>
+                      <span class="text-[11px] font-bold uppercase tracking-wider text-sky-500">Total Daily Water</span>
+                      <p id="combined-water-glasses-display" class="text-2xl font-black text-sky-500 mt-1.5">9 Glasses</p>
+                      <p id="combined-water-liters-display" class="text-xs font-bold text-theme-primary mt-0.5">2.25 L (2,250 ml)</p>
+                    </div>
+                    <p id="combined-water-formula" class="text-[11px] text-theme-muted mt-3 pt-2.5 border-t border-theme">
+                      Base 2250ml + 0ml creatine
+                    </p>
+                  </div>
+                </div>
+
+                <!-- One-Click Sync Combined Target Button -->
+                <div class="p-4 rounded-2xl bg-gradient-to-r from-[#0F2C2A] to-[#1B6B63] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <p class="text-xs font-bold uppercase tracking-wider text-[#22A699]">One-Click Goal Integration</p>
+                    <p class="text-sm font-bold mt-0.5">
+                      Sync combined water target (<span id="sync-btn-target-preview">9 glasses / 2.25L</span>) to your Dashboard &amp; Hydration Tracker
+                    </p>
+                  </div>
+                  <button type="button" onclick="syncCombinedWaterTarget()" class="px-5 py-3 rounded-xl bg-[#22A699] hover:bg-teal-400 text-[#0F2C2A] font-extrabold text-xs sm:text-sm shrink-0 shadow-md transition active:scale-95">
+                    Sync Combined Water Target to Daily Goal
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             VIEW 6: PREVENTIVE WELLNESS TIPS
+             ==================================================================== -->
+        <section id="view-tips" class="view-panel space-y-6">
+          <div class="surface-card rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-lg font-extrabold text-theme-primary">Student-Focused Preventive Health Guides</h3>
+              <p class="text-xs text-theme-muted">Practical daily habits aligned with UN SDG 3: Good Health &amp; Well-Being</p>
+            </div>
+
+            <div id="tips-filter-bar" class="flex flex-wrap gap-2">
+              <button type="button" data-category="All" class="tip-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold bg-[#0F2C2A] text-white transition">All</button>
+              <button type="button" data-category="Hydration" class="tip-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold surface-subtle text-theme-primary transition">Hydration</button>
+              <button type="button" data-category="Sleep Hygiene" class="tip-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold surface-subtle text-theme-primary transition">Sleep Hygiene</button>
+              <button type="button" data-category="Stress Management" class="tip-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold surface-subtle text-theme-primary transition">Stress Management</button>
+              <button type="button" data-category="Physical Activity" class="tip-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold surface-subtle text-theme-primary transition">Physical Activity</button>
+            </div>
+          </div>
+
+          <div id="tips-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+      </main>
+
+      <!-- ======================================================================
+           PROMINENT ETHICAL & CLINICAL BOUNDARY FOOTER (ALL VIEWS)
+           ====================================================================== -->
+      <footer class="surface-card border-x-0 border-b-0 px-6 lg:px-10 py-5 mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="flex items-start sm:items-center gap-3">
+            <span class="p-2 rounded-xl bg-rose-500/15 text-[#E85D75] shrink-0">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </span>
+            <p class="text-xs sm:text-sm font-bold text-theme-primary">
+              This application supports preventive health awareness and healthy lifestyle management only and does not replace professional medical advice.
+            </p>
+          </div>
+          <span class="text-[11px] font-semibold text-theme-muted shrink-0">
+            UN SDG 3 • Project-Based Learning
+          </span>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       VANILLA JAVASCRIPT: AUTH, THEME ENGINE, PER-USER DATA & INTERACTIVITY
+       ========================================================================== -->
+  <script>
+    // 1. STORAGE KEYS & DEFAULT ACCOUNTS
+    const USERS_DB_KEY = 'shwms_users_db_v2';
+    const SESSION_USER_KEY = 'shwms_active_session_v2';
+    const THEME_STORAGE_KEY = 'shwms_theme_pref_v2';
+
+    const DEMO_EMAIL = 'aarav.student@campus.edu';
+
+    function createDefaultUserData(isDemo = false) {
+      return {
+        goals: { water: 8, sleep: 8, exercise: 45 },
+        profile: { heightCm: 174, weightKg: 68 },
+        nutrition: { proteinGoal: 'active', creatinePhase: 'none' },
+        mood: { label: 'Calm & Focused', emoji: '😌' },
+        today: {
+          water: isDemo ? 6 : 2,
+          sleepHours: isDemo ? 7.5 : 7.0,
+          sleepQuality: 'Good',
+          workouts: isDemo
+            ? [
+                { id: 'w-1', type: 'Brisk Walking', duration: 25, intensity: 'Moderate', time: '08:00 AM' },
+                { id: 'w-2', type: 'Yoga / Stretching', duration: 10, intensity: 'Low', time: '01:30 PM' },
+              ]
+            : [],
+        },
+        pastSixDays: isDemo
+          ? [
+              { day: 'Mon', water: 7, sleep: 7.0, exercise: 30 },
+              { day: 'Tue', water: 8, sleep: 7.5, exercise: 45 },
+              { day: 'Wed', water: 6, sleep: 6.0, exercise: 20 },
+              { day: 'Thu', water: 8, sleep: 8.0, exercise: 50 },
+              { day: 'Fri', water: 7, sleep: 7.5, exercise: 40 },
+              { day: 'Sat', water: 8, sleep: 8.5, exercise: 55 },
+            ]
+          : [
+              { day: 'Mon', water: 5, sleep: 6.5, exercise: 20 },
+              { day: 'Tue', water: 6, sleep: 7.0, exercise: 30 },
+              { day: 'Wed', water: 5, sleep: 6.5, exercise: 15 },
+              { day: 'Thu', water: 7, sleep: 7.5, exercise: 35 },
+              { day: 'Fri', water: 6, sleep: 7.0, exercise: 25 },
+              { day: 'Sat', water: 7, sleep: 8.0, exercise: 40 },
+            ],
+        reminders: [
+          { id: 'r-1', title: 'Drink 250ml Water', time: '10:30 AM', active: true },
+          { id: 'r-2', title: 'Midday Stretch Break', time: '01:45 PM', active: true },
+          { id: 'r-3', title: 'Evening Workout', time: '05:30 PM', active: true },
+          { id: 'r-4', title: 'Wind Down for Sleep', time: '10:30 PM', active: true },
+        ],
+      };
+    }
+
+    const MOOD_OPTIONS = [
+      { emoji: '🤩', label: 'Energized & Great' },
+      { emoji: '😌', label: 'Calm & Focused' },
+      { emoji: '😐', label: 'Neutral / Steady' },
+      { emoji: '😓', label: 'Academic Stress' },
+      { emoji: '😴', label: 'Fatigued / Low Sleep' },
+    ];
+
+    const PREVENTIVE_TIPS = [
+      {
+        category: 'Hydration',
+        title: 'Morning 500ml Rehydration Habit',
+        body: 'Drinking two glasses of water right after waking replenishes overnight fluid loss and sharpens morning lecture concentration.',
+        tag: 'Daily Focus',
+      },
+      {
+        category: 'Sleep Hygiene',
+        title: 'Fixed Wake-Up Anchor',
+        body: 'Waking up at the same hour every morning stabilizes your circadian clock and improves deep slow-wave sleep quality.',
+        tag: 'Restorative Sleep',
+      },
+      {
+        category: 'Stress Management',
+        title: '4-7-8 Exam Calm Technique',
+        body: 'Inhale quietly for 4 seconds, hold for 7 seconds, and exhale for 8 seconds. Four cycles rapidly lower exam-induced heart rate.',
+        tag: 'Mental Well-Being',
+      },
+      {
+        category: 'Physical Activity',
+        title: '50/10 Desk Study Movement Rule',
+        body: 'After 50 minutes of sitting at a laptop, take a 10-minute brisk walk or stretch to prevent posture strain and mental fatigue.',
+        tag: 'Campus Fitness',
+      },
+      {
+        category: 'Hydration',
+        title: 'Visual Water Bottle Cue',
+        body: 'Keeping a marked 1-liter bottle on your study desk acts as an effortless visual nudge to sip water steadily between classes.',
+        tag: 'Behavioral Nudge',
+      },
+      {
+        category: 'Sleep Hygiene',
+        title: '30-Minute Pre-Sleep Screen Dimming',
+        body: 'Reducing bright blue-light exposure 30 minutes before bedtime supports natural melatonin release for faster sleep onset.',
+        tag: 'Evening Routine',
+      },
+    ];
+
+    // 2. THEME MANAGEMENT (LIGHT & DARK MODE)
+    function applyTheme(theme) {
+      const htmlEl = document.documentElement;
+      if (theme === 'dark') {
+        htmlEl.classList.add('dark');
+        document.querySelectorAll('.theme-icon-sun').forEach((el) => el.classList.remove('hidden'));
+        document.querySelectorAll('.theme-icon-moon').forEach((el) => el.classList.add('hidden'));
+      } else {
+        htmlEl.classList.remove('dark');
+        document.querySelectorAll('.theme-icon-sun').forEach((el) => el.classList.add('hidden'));
+        document.querySelectorAll('.theme-icon-moon').forEach((el) => el.classList.remove('hidden'));
+      }
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, theme);
+      } catch (e) {}
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const nextTheme = isDark ? 'light' : 'dark';
+      applyTheme(nextTheme);
+      showToast(
+        `${nextTheme === 'dark' ? 'Dark' : 'Light'} Theme Enabled`,
+        `Switched workspace appearance to ${nextTheme} mode.`
+      );
+    }
+
+    // Initialize saved theme immediately
+    applyTheme(localStorage.getItem(THEME_STORAGE_KEY) || 'light');
+
+    // 3. USER DATABASE & AUTHENTICATION SYSTEM
+    function getUsersDB() {
+      try {
+        const raw = localStorage.getItem(USERS_DB_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+
+      // Seed default demo student account
+      const initialDB = {
+        [DEMO_EMAIL]: {
+          name: 'Aarav Sharma',
+          role: 'B.Tech Student • Campus Wellness',
+          email: DEMO_EMAIL,
+          password: 'password123',
+          data: createDefaultUserData(true),
+        },
+      };
+      // Allow both 'password123' and prefilled 'wellness123' for effortless demo
+      initialDB[DEMO_EMAIL].password = 'wellness123';
+      saveUsersDB(initialDB);
+      return initialDB;
+    }
+
+    function saveUsersDB(db) {
+      try {
+        localStorage.setItem(USERS_DB_KEY, JSON.stringify(db));
+      } catch (e) {}
+    }
+
+    let currentUserEmail = localStorage.getItem(SESSION_USER_KEY) || null;
+    let appState = null;
+    let currentTipCategory = 'All';
+
+    function switchAuthMode(mode) {
+      const signinForm = document.getElementById('signin-form');
+      const signupForm = document.getElementById('signup-form');
+      const signinBtn = document.getElementById('tab-signin-btn');
+      const signupBtn = document.getElementById('tab-signup-btn');
+
+      if (mode === 'signin') {
+        signinForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+        signinBtn.className = 'py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-[#0F2C2A] text-white shadow-xs transition';
+        signupBtn.className = 'py-2.5 rounded-xl text-xs sm:text-sm font-extrabold text-theme-muted hover:text-theme-primary transition';
+      } else {
+        signupForm.classList.remove('hidden');
+        signinForm.classList.add('hidden');
+        signupBtn.className = 'py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-[#0F2C2A] text-white shadow-xs transition';
+        signinBtn.className = 'py-2.5 rounded-xl text-xs sm:text-sm font-extrabold text-theme-muted hover:text-theme-primary transition';
+      }
+    }
+
+    function activateSession(email) {
+      const db = getUsersDB();
+      const user = db[email];
+      if (!user) return;
+
+      currentUserEmail = email;
+      appState = user.data;
+      try {
+        localStorage.setItem(SESSION_USER_KEY, email);
+      } catch (e) {}
+
+      // Update Sidebar & Welcome Identity
+      const initials = user.name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+
+      document.getElementById('sidebar-avatar').textContent = initials || 'ST';
+      document.getElementById('sidebar-user-name').textContent = user.name;
+      document.getElementById('sidebar-user-role').textContent = user.role || 'Student Profile';
+      document.getElementById('dashboard-welcome-title').textContent =
+        `Welcome back, ${user.name.split(' ')[0]}! Stay consistent with your daily hydration, rest, and movement goals.`;
+
+      // Toggle Screens
+      document.getElementById('auth-screen').classList.add('hidden');
+      const appShell = document.getElementById('app-shell');
+      appShell.classList.remove('hidden');
+      appShell.classList.add('flex');
+
+      switchTab('dashboard');
+      renderAll();
+    }
+
+    function loginWithDemoAccount() {
+      getUsersDB(); // Ensure demo exists
+      activateSession(DEMO_EMAIL);
+      showToast('Demo Session Active', 'Signed in as Aarav Sharma with sample weekly wellness logs.', 'mint');
+    }
+
+    function signOutUser() {
+      currentUserEmail = null;
+      appState = null;
+      try {
+        localStorage.removeItem(SESSION_USER_KEY);
+      } catch (e) {}
+
+      const appShell = document.getElementById('app-shell');
+      appShell.classList.add('hidden');
+      appShell.classList.remove('flex');
+      document.getElementById('auth-screen').classList.remove('hidden');
+      showToast('Signed Out', 'Your wellness session has been securely closed.');
+    }
+
+    // Sign In Handler
+    document.getElementById('signin-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('signin-email').value.trim().toLowerCase();
+      const password = document.getElementById('signin-password').value;
+      const errEl = document.getElementById('signin-error');
+
+      const db = getUsersDB();
+      const user = db[email];
+      if (!user || user.password !== password) {
+        errEl.textContent = 'Invalid email or password. Try the Demo Account button or register a new profile.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      errEl.classList.add('hidden');
+      activateSession(email);
+      showToast('Signed In', `Welcome back, ${user.name}!`, 'mint');
+    });
+
+    // Sign Up Handler
+    document.getElementById('signup-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('signup-name').value.trim();
+      const role = document.getElementById('signup-role').value.trim() || 'Student Profile';
+      const email = document.getElementById('signup-email').value.trim().toLowerCase();
+      const password = document.getElementById('signup-password').value;
+      const errEl = document.getElementById('signup-error');
+
+      const db = getUsersDB();
+      if (db[email]) {
+        errEl.textContent = 'An account with this email already exists. Please Sign In instead.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      db[email] = {
+        name,
+        role,
+        email,
+        password,
+        data: createDefaultUserData(false),
+      };
+      saveUsersDB(db);
+      errEl.classList.add('hidden');
+      activateSession(email);
+      showToast('Account Created!', `Welcome ${name}! Your personal UN SDG 3 wellness workspace is ready.`, 'mint');
+    });
+
+    function saveCurrentUserState() {
+      if (!currentUserEmail || !appState) return;
+      const db = getUsersDB();
+      if (db[currentUserEmail]) {
+        db[currentUserEmail].data = appState;
+        saveUsersDB(db);
+      }
+    }
+
+    // 4. TOAST NOTIFICATION SYSTEM
+    function showToast(title, message, variant = 'teal') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+
+      const palette =
+        variant === 'coral'
+          ? 'bg-[#0F2C2A] text-white border-[#E85D75]'
+          : variant === 'mint'
+          ? 'bg-[#0F2C2A] text-white border-[#22A699]'
+          : 'surface-card text-theme-primary border-[#1B6B63]';
+
+      const badgeColor =
+        variant === 'coral'
+          ? 'bg-[#E85D75] text-white'
+          : variant === 'mint'
+          ? 'bg-[#22A699] text-[#0F2C2A]'
+          : 'bg-[#1B6B63] text-white';
+
+      toast.className = `toast-item pointer-events-auto rounded-2xl p-4 shadow-xl border-l-4 ${palette} flex items-start gap-3`;
+      toast.innerHTML = `
+        <span class="px-2 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider ${badgeColor} shrink-0 mt-0.5">
+          ${variant === 'coral' ? 'Alert' : 'Update'}
+        </span>
+        <div class="flex-1 min-w-0">
+          <p class="font-extrabold text-sm leading-snug">${title}</p>
+          <p class="text-xs opacity-85 mt-0.5 leading-relaxed">${message}</p>
+        </div>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(20px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(() => toast.remove(), 260);
+      }, 3800);
+    }
+
+    // 5. TAB NAVIGATION & MOBILE DRAWER
+    const TAB_TITLES = {
+      dashboard: 'Dashboard',
+      loggers: 'Daily Habit Loggers',
+      goals: 'Goals & Smart Reminders',
+      reports: 'Weekly Progress Report',
+      profile: 'BMI, Protein & Hydration Calculator',
+      tips: 'Preventive Wellness Tips',
+    };
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.view-panel').forEach((panel) => panel.classList.remove('active'));
+      const targetPanel = document.getElementById(`view-${tabId}`);
+      if (targetPanel) targetPanel.classList.add('active');
+
+      document.querySelectorAll('.nav-btn').forEach((btn) => {
+        const isMatch = btn.dataset.tab === tabId;
+        btn.className = isMatch
+          ? 'nav-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all bg-[#1B6B63] text-white shadow-md'
+          : 'nav-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-teal-100/80 hover:bg-white/5 hover:text-white';
+      });
+
+      document.getElementById('page-heading').textContent = TAB_TITLES[tabId] || 'Dashboard';
+      closeMobileMenu();
+    }
+
+    const sidebarEl = document.getElementById('sidebar');
+    const backdropEl = document.getElementById('mobile-backdrop');
+
+    function closeMobileMenu() {
+      sidebarEl.classList.add('-translate-x-full');
+      backdropEl.classList.add('hidden');
+    }
+
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+      if (sidebarEl.classList.contains('-translate-x-full')) {
+        sidebarEl.classList.remove('-translate-x-full');
+        backdropEl.classList.remove('hidden');
+      } else {
+        closeMobileMenu();
+      }
+    });
+    backdropEl.addEventListener('click', closeMobileMenu);
+    document.querySelectorAll('.nav-btn').forEach((btn) => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    // 6. HABIT, MOOD, BMI & REPORT ACTIONS
+    function adjustWater(delta) {
+      if (!appState) return;
+      const next = Math.max(0, Math.min(20, appState.today.water + delta));
+      appState.today.water = next;
+      saveCurrentUserState();
+      renderAll();
+
+      if (delta > 0) {
+        if (next === appState.goals.water) {
+          showToast('Hydration Goal Reached!', `You hit your daily target of ${appState.goals.water} glasses.`, 'mint');
+        } else {
+          showToast('Hydration Logged', `Logged ${next} of ${appState.goals.water} glasses (${(next * 0.25).toFixed(2)}L).`);
+        }
+      }
+    }
+
+    function setWaterExact(count) {
+      if (!appState) return;
+      appState.today.water = count;
+      saveCurrentUserState();
+      renderAll();
+      showToast('Hydration Updated', `Daily intake set to ${count} glasses (${(count * 0.25).toFixed(2)}L).`);
+    }
+
+    function quickLogWalk() {
+      if (!appState) return;
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      appState.today.workouts.unshift({
+        id: 'w-' + Date.now(),
+        type: 'Brisk Walking',
+        duration: 15,
+        intensity: 'Moderate',
+        time: timeStr,
+      });
+      saveCurrentUserState();
+      renderAll();
+      showToast('Quick Walk Logged!', 'Added +15 mins of Brisk Walking to today’s activity.', 'mint');
+    }
+
+    function deleteWorkout(id) {
+      if (!appState) return;
+      appState.today.workouts = appState.today.workouts.filter((w) => w.id !== id);
+      saveCurrentUserState();
+      renderAll();
+      showToast('Workout Removed', 'Session deleted from today’s exercise log.');
+    }
+
+    function selectMood(emoji, label) {
+      if (!appState) return;
+      appState.mood = { emoji, label };
+      saveCurrentUserState();
+      renderMoodSelector();
+      showToast('Mood Check-In Saved', `Logged today’s mental state: ${emoji} ${label}`);
+    }
+
+    function toggleReminder(id) {
+      if (!appState) return;
+      appState.reminders = appState.reminders.map((r) => {
+        if (r.id === id) {
+          const updated = { ...r, active: !r.active };
+          showToast(
+            updated.active ? 'Reminder Activated' : 'Reminder Paused',
+            `"${updated.title}" (${updated.time}) is now ${updated.active ? 'enabled' : 'disabled'}.`
+          );
+          return updated;
+        }
+        return r;
+      });
+      saveCurrentUserState();
+      renderAll();
+    }
+
+    function testReminderAlert(title, time) {
+      showToast(`🔔 Reminder: ${title}`, `Scheduled habit nudge (${time}) — Stay consistent with your UN SDG 3 goals!`, 'coral');
+    }
+
+    function deleteReminder(id) {
+      if (!appState) return;
+      appState.reminders = appState.reminders.filter((r) => r.id !== id);
+      saveCurrentUserState();
+      renderAll();
+      showToast('Reminder Deleted', 'Custom reminder removed.');
+    }
+
+    function applyRecommendedHydration() {
+      if (!appState) return;
+      const weight = appState.profile?.weightKg || 68;
+      const recGlasses = Math.max(6, Math.min(16, Math.round((weight * 0.033) / 0.25)));
+      appState.goals.water = recGlasses;
+      saveCurrentUserState();
+      renderAll();
+      showToast('Base Hydration Goal Applied', `Updated daily water target to ${recGlasses} glasses (${(recGlasses * 0.25).toFixed(2)}L).`, 'mint');
+    }
+
+    function getNutritionCalculation() {
+      const weight = appState?.profile?.weightKg || 68;
+      const nutrition = appState?.nutrition || { proteinGoal: 'active', creatinePhase: 'none' };
+
+      const proteinMultipliers = {
+        sedentary: { min: 0.8, max: 1.0, label: 'Sedentary / General Wellness' },
+        active: { min: 1.2, max: 1.4, label: 'Active Student / Light Exercise' },
+        strength: { min: 1.6, max: 2.0, label: 'Strength Training / Muscle Gain' },
+        fatloss: { min: 1.8, max: 2.2, label: 'Fat Loss / High-Protein Deficit' },
+      };
+
+      const mult = proteinMultipliers[nutrition.proteinGoal] || proteinMultipliers.active;
+      const minProtein = Math.round(weight * mult.min);
+      const maxProtein = Math.round(weight * mult.max);
+      const avgPerMeal = Math.round(((minProtein + maxProtein) / 2) / 4);
+
+      const baseWaterMl = Math.round(weight * 33); // ~33ml per kg baseline
+      let creatineExtraMl = 0;
+      let creatineDoseLabel = '0g / day';
+      let creatineCaption = 'Standard baseline hydration';
+
+      if (nutrition.creatinePhase === 'maintenance') {
+        creatineExtraMl = 600; // +600ml (~2.4 glasses) for 3-5g/day maintenance
+        creatineDoseLabel = '3–5g / day';
+        creatineCaption = 'Maintenance cellular hydration (+2.5 glasses)';
+      } else if (nutrition.creatinePhase === 'loading') {
+        creatineExtraMl = 1000; // +1000ml (+4 glasses) for 15-20g/day loading
+        creatineDoseLabel = '15–20g / day';
+        creatineCaption = 'Loading phase cellular saturation (+4 glasses)';
+      }
+
+      const combinedWaterMl = baseWaterMl + creatineExtraMl;
+      const combinedGlasses = Math.max(6, Math.min(20, Math.round(combinedWaterMl / 250)));
+      const combinedLiters = (combinedGlasses * 0.25).toFixed(2);
+
+      return {
+        weight,
+        minProtein,
+        maxProtein,
+        avgPerMeal,
+        baseWaterMl,
+        creatineExtraMl,
+        creatineDoseLabel,
+        creatineCaption,
+        combinedGlasses,
+        combinedLiters,
+      };
+    }
+
+    function syncCombinedWaterTarget() {
+      if (!appState) return;
+      const calc = getNutritionCalculation();
+      appState.goals.water = calc.combinedGlasses;
+      saveCurrentUserState();
+      renderAll();
+      showToast(
+        'Combined Water Goal Synced!',
+        `Daily water target set to ${calc.combinedGlasses} glasses (${calc.combinedLiters}L) including creatine hydration adjustment.`,
+        'mint'
+      );
+    }
+
+    function exportWeeklyCSV() {
+      if (!appState) return;
+      const { totalExercise } = getMetrics();
+      const rows = [
+        ['Day', 'Water_Glasses', 'Water_Goal', 'Sleep_Hours', 'Sleep_Goal', 'Exercise_Mins', 'Exercise_Goal'],
+        ...appState.pastSixDays.map((d) => [
+          d.day,
+          d.water,
+          appState.goals.water,
+          d.sleep,
+          appState.goals.sleep,
+          d.exercise,
+          appState.goals.exercise,
+        ]),
+        [
+          'Sunday (Today)',
+          appState.today.water,
+          appState.goals.water,
+          appState.today.sleepHours,
+          appState.goals.sleep,
+          totalExercise,
+          appState.goals.exercise,
+        ],
+      ];
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + rows.map((r) => r.join(',')).join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `Smart_Wellness_Weekly_Report_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('CSV Report Downloaded', 'Exported 7-day student wellness metrics for evaluation.', 'mint');
+    }
+
+    // Form Listeners
+    document.getElementById('header-add-water-btn').addEventListener('click', () => adjustWater(1));
+
+    document.getElementById('header-reset-btn').addEventListener('click', () => {
+      if (!appState) return;
+      appState = createDefaultUserData(currentUserEmail === DEMO_EMAIL);
+      saveCurrentUserState();
+      renderAll();
+      showToast('Data Reset', 'Your wellness metrics have been reset to baseline defaults.', 'mint');
+    });
+
+    const sleepSlider = document.getElementById('sleep-hours-slider');
+    const sleepSliderDisplay = document.getElementById('sleep-slider-display');
+    sleepSlider.addEventListener('input', (e) => {
+      sleepSliderDisplay.textContent = `${parseFloat(e.target.value).toFixed(1)} hrs`;
+    });
+
+    document.getElementById('sleep-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!appState) return;
+      appState.today.sleepHours = parseFloat(sleepSlider.value);
+      appState.today.sleepQuality = document.getElementById('sleep-quality-select').value;
+      saveCurrentUserState();
+      renderAll();
+      showToast('Sleep Record Saved', `Logged ${appState.today.sleepHours} hrs (${appState.today.sleepQuality}).`, 'mint');
+    });
+
+    document.getElementById('exercise-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!appState) return;
+      const type = document.getElementById('exercise-type').value;
+      const duration = parseInt(document.getElementById('exercise-duration').value, 10);
+      const intensity = document.getElementById('exercise-intensity').value;
+      if (isNaN(duration) || duration <= 0) return;
+
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      appState.today.workouts.unshift({
+        id: 'w-' + Date.now(),
+        type,
+        duration,
+        intensity,
+        time: timeStr,
+      });
+      saveCurrentUserState();
+      renderAll();
+      showToast('Exercise Logged', `Added ${duration} mins of ${type} (${intensity}).`, 'mint');
+    });
+
+    document.getElementById('goals-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!appState) return;
+      const w = parseInt(document.getElementById('goal-water-input').value, 10);
+      const s = parseFloat(document.getElementById('goal-sleep-input').value);
+      const ex = parseInt(document.getElementById('goal-exercise-input').value, 10);
+
+      appState.goals = {
+        water: Math.max(1, Math.min(20, w || 8)),
+        sleep: Math.max(4, Math.min(14, s || 8)),
+        exercise: Math.max(10, Math.min(240, ex || 45)),
+      };
+      saveCurrentUserState();
+      renderAll();
+      showToast('Goals Updated', 'All dashboard progress bars and weekly reports recalculated.', 'mint');
+    });
+
+    document.getElementById('add-reminder-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!appState) return;
+      const titleInput = document.getElementById('reminder-title-input');
+      const timeInput = document.getElementById('reminder-time-input');
+      const title = titleInput.value.trim();
+      const time = timeInput.value.trim() || '06:00 PM';
+      if (!title) return;
+
+      appState.reminders.push({
+        id: 'r-' + Date.now(),
+        title,
+        time,
+        active: true,
+      });
+      titleInput.value = '';
+      saveCurrentUserState();
+      renderAll();
+      showToast('Reminder Added', `Scheduled "${title}" at ${time}.`, 'mint');
+    });
+
+    document.getElementById('bmi-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!appState) return;
+      const h = parseFloat(document.getElementById('profile-height').value);
+      const w = parseFloat(document.getElementById('profile-weight').value);
+      if (isNaN(h) || isNaN(w) || h <= 0 || w <= 0) return;
+
+      appState.profile = { heightCm: h, weightKg: w };
+      saveCurrentUserState();
+      renderProfileMetrics();
+      showToast('BMI & Body Metrics Updated', 'Recalculated BMI, protein targets, and hydration requirements.', 'mint');
+    });
+
+    document.getElementById('protein-goal-select').addEventListener('change', (e) => {
+      if (!appState) return;
+      if (!appState.nutrition) appState.nutrition = { proteinGoal: 'active', creatinePhase: 'none' };
+      appState.nutrition.proteinGoal = e.target.value;
+      saveCurrentUserState();
+      renderProfileMetrics();
+    });
+
+    document.getElementById('creatine-phase-select').addEventListener('change', (e) => {
+      if (!appState) return;
+      if (!appState.nutrition) appState.nutrition = { proteinGoal: 'active', creatinePhase: 'none' };
+      appState.nutrition.creatinePhase = e.target.value;
+      saveCurrentUserState();
+      renderProfileMetrics();
+    });
+
+    document.querySelectorAll('.tip-filter-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        currentTipCategory = btn.dataset.category;
+        document.querySelectorAll('.tip-filter-btn').forEach((b) => {
+          b.className =
+            b.dataset.category === currentTipCategory
+              ? 'tip-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold bg-[#0F2C2A] text-white transition'
+              : 'tip-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold surface-subtle text-theme-primary transition';
+        });
+        renderTips();
+      });
+    });
+
+    // 7. RENDER FUNCTIONS
+    function getMetrics() {
+      const totalExercise = appState.today.workouts.reduce((sum, w) => sum + Number(w.duration || 0), 0);
+      const waterPct = Math.min(100, Math.round((appState.today.water / appState.goals.water) * 100));
+      const sleepPct = Math.min(100, Math.round((appState.today.sleepHours / appState.goals.sleep) * 100));
+      const exercisePct = Math.min(100, Math.round((totalExercise / appState.goals.exercise) * 100));
+      const overallPct = Math.round((waterPct + sleepPct + exercisePct) / 3);
+      return { totalExercise, waterPct, sleepPct, exercisePct, overallPct };
+    }
+
+    function renderMoodSelector() {
+      const currentMood = appState.mood || { emoji: '😌', label: 'Calm & Focused' };
+      document.getElementById('mood-status-caption').textContent = `Current state: ${currentMood.emoji} ${currentMood.label}`;
+
+      document.getElementById('mood-selector-group').innerHTML = MOOD_OPTIONS.map((m) => {
+        const selected = m.label === currentMood.label;
+        return `
+          <button type="button" onclick="selectMood('${m.emoji}', '${m.label}')" class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition ${
+            selected
+              ? 'bg-[#1B6B63] text-white shadow-xs'
+              : 'surface-subtle text-theme-primary hover:opacity-80'
+          }">
+            <span>${m.emoji}</span>
+            <span>${m.label}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderDashboardAndKPIs() {
+      const { totalExercise, waterPct, sleepPct, exercisePct, overallPct } = getMetrics();
+
+      document.getElementById('sidebar-score-text').textContent = `${overallPct}%`;
+      document.getElementById('sidebar-score-bar').style.width = `${overallPct}%`;
+
+      document.getElementById('kpi-overall-score').textContent = `${overallPct}%`;
+      document.getElementById('kpi-overall-bar').style.width = `${overallPct}%`;
+
+      document.getElementById('kpi-water-pct').textContent = `${waterPct}%`;
+      document.getElementById('kpi-water-val').textContent = appState.today.water;
+      document.getElementById('kpi-water-target').textContent = `/ ${appState.goals.water} glasses`;
+      document.getElementById('kpi-water-liters').textContent = `${(appState.today.water * 0.25).toFixed(2)} L consumed`;
+      document.getElementById('kpi-water-bar').style.width = `${waterPct}%`;
+
+      document.getElementById('kpi-sleep-pct').textContent = `${sleepPct}%`;
+      document.getElementById('kpi-sleep-val').textContent = `${appState.today.sleepHours}h`;
+      document.getElementById('kpi-sleep-target').textContent = `/ ${appState.goals.sleep}h target`;
+      document.getElementById('kpi-sleep-quality').textContent = appState.today.sleepQuality;
+      document.getElementById('kpi-sleep-bar').style.width = `${sleepPct}%`;
+
+      document.getElementById('kpi-exercise-pct').textContent = `${exercisePct}%`;
+      document.getElementById('kpi-exercise-val').textContent = `${totalExercise}m`;
+      document.getElementById('kpi-exercise-target').textContent = `/ ${appState.goals.exercise}m target`;
+      document.getElementById('kpi-exercise-count').textContent = `${appState.today.workouts.length} session(s) today`;
+      document.getElementById('kpi-exercise-bar').style.width = `${exercisePct}%`;
+
+      renderMoodSelector();
+
+      const dashWorkouts = document.getElementById('dashboard-workout-list');
+      if (appState.today.workouts.length === 0) {
+        dashWorkouts.innerHTML = `<p class="text-xs text-theme-muted py-6 text-center surface-subtle rounded-xl">No workouts logged yet today.</p>`;
+      } else {
+        dashWorkouts.innerHTML = appState.today.workouts
+          .map(
+            (w) => `
+            <div class="p-3.5 rounded-xl surface-subtle flex items-center justify-between">
+              <div>
+                <p class="font-bold text-sm text-theme-primary">${w.type}</p>
+                <p class="text-xs text-theme-muted">${w.intensity} Intensity • ${w.time}</p>
+              </div>
+              <span class="px-3 py-1 rounded-lg surface-card text-[#22A699] font-extrabold text-xs">
+                ${w.duration} mins
+              </span>
+            </div>
+          `
+          )
+          .join('');
+      }
+
+      const dashReminders = document.getElementById('dashboard-reminders-list');
+      dashReminders.innerHTML = appState.reminders
+        .slice(0, 4)
+        .map(
+          (r) => `
+          <div class="p-3.5 rounded-xl surface-subtle flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full ${r.active ? 'bg-[#22A699]' : 'bg-slate-400'} shrink-0"></span>
+              <div class="min-w-0">
+                <p class="font-bold text-sm text-theme-primary truncate">${r.title}</p>
+                <p class="text-xs text-theme-muted">${r.time} • ${r.active ? 'Active' : 'Paused'}</p>
+              </div>
+            </div>
+            <button type="button" onclick="testReminderAlert('${r.title.replace(/'/g, "\\'")}', '${r.time}')" class="px-2.5 py-1.5 rounded-lg bg-[#0F2C2A] hover:bg-[#1B6B63] text-white text-[11px] font-bold shrink-0 transition">
+              Test Alert
+            </button>
+          </div>
+        `
+        )
+        .join('');
+    }
+
+    function renderLoggers() {
+      const { totalExercise } = getMetrics();
+      document.getElementById('logger-water-badge').textContent = `${appState.today.water} / ${appState.goals.water} Glasses`;
+
+      const grid = document.getElementById('water-glasses-grid');
+      const totalSlots = Math.max(appState.goals.water, appState.today.water, 8);
+      let gridHTML = '';
+      for (let i = 1; i <= totalSlots; i++) {
+        const filled = i <= appState.today.water;
+        const targetVal = filled && i === appState.today.water ? i - 1 : i;
+        gridHTML += `
+          <button type="button" onclick="setWaterExact(${targetVal})" class="water-glass-btn h-14 rounded-xl border flex flex-col items-center justify-center ${
+            filled
+              ? 'bg-sky-500 border-sky-600 text-white shadow-xs'
+              : 'surface-card text-sky-500 hover:border-sky-400'
+          }">
+            <svg class="w-4 h-4" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+            </svg>
+            <span class="text-[10px] font-extrabold mt-0.5">${i * 250}ml</span>
+          </button>
+        `;
+      }
+      grid.innerHTML = gridHTML;
+
+      sleepSlider.value = appState.today.sleepHours;
+      sleepSliderDisplay.textContent = `${appState.today.sleepHours} hrs`;
+      document.getElementById('sleep-quality-select').value = appState.today.sleepQuality;
+
+      const feedbackBox = document.getElementById('sleep-feedback-box');
+      if (appState.today.sleepHours < 6.5) {
+        feedbackBox.textContent =
+          'Alert: Sleep duration is below 6.5 hours. Prioritize an earlier wind-down tonight to restore focus and immunity.';
+      } else {
+        feedbackBox.textContent =
+          'Great recovery! Consistent 7–8.5 hour sleep cycles boost academic memory retention and emotional resilience.';
+      }
+
+      document.getElementById('logger-exercise-total').textContent = `${totalExercise} mins total`;
+      const loggerWorkouts = document.getElementById('logger-workout-list');
+      if (appState.today.workouts.length === 0) {
+        loggerWorkouts.innerHTML = `<p class="text-xs text-theme-muted py-4 text-center">No sessions recorded yet.</p>`;
+      } else {
+        loggerWorkouts.innerHTML = appState.today.workouts
+          .map(
+            (w) => `
+            <div class="p-2.5 rounded-xl surface-subtle flex items-center justify-between text-xs">
+              <div>
+                <p class="font-bold text-theme-primary">${w.type}</p>
+                <p class="text-theme-muted">${w.duration} mins • ${w.intensity} • ${w.time}</p>
+              </div>
+              <button type="button" onclick="deleteWorkout('${w.id}')" class="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-[#E85D75] font-bold transition">
+                Delete
+              </button>
+            </div>
+          `
+          )
+          .join('');
+      }
+    }
+
+    function renderGoalsAndReminders() {
+      document.getElementById('goal-water-input').value = appState.goals.water;
+      document.getElementById('goal-sleep-input').value = appState.goals.sleep;
+      document.getElementById('goal-exercise-input').value = appState.goals.exercise;
+
+      const listEl = document.getElementById('reminders-manager-list');
+      listEl.innerHTML = appState.reminders
+        .map(
+          (r) => `
+          <div class="p-4 rounded-2xl surface-subtle ${r.active ? '' : 'opacity-65'} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <button type="button" onclick="toggleReminder('${r.id}')" class="w-11 h-6 rounded-full p-0.5 transition-colors ${
+                r.active ? 'bg-[#1B6B63]' : 'bg-slate-400/50'
+              }" aria-label="Toggle reminder">
+                <div class="w-5 h-5 rounded-full bg-white shadow-xs transform transition-transform ${
+                  r.active ? 'translate-x-5' : 'translate-x-0'
+                }"></div>
+              </button>
+              <div>
+                <p class="font-bold text-sm text-theme-primary">${r.title}</p>
+                <p class="text-xs text-theme-muted">Scheduled at <strong class="text-[#22A699]">${r.time}</strong></p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 self-end sm:self-center">
+              <button type="button" onclick="testReminderAlert('${r.title.replace(/'/g, "\\'")}', '${r.time}')" class="px-3 py-1.5 rounded-xl bg-[#E85D75] hover:bg-rose-600 text-white text-xs font-bold transition">
+                Test Reminder Alert
+              </button>
+              <button type="button" onclick="deleteReminder('${r.id}')" class="p-1.5 rounded-lg text-theme-muted hover:text-[#E85D75] transition" title="Delete reminder">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        `
+        )
+        .join('');
+    }
+
+    function renderWeeklyReport() {
+      const { totalExercise } = getMetrics();
+      const sevenDays = [
+        ...appState.pastSixDays,
+        {
+          day: 'Sun (Today)',
+          water: appState.today.water,
+          sleep: appState.today.sleepHours,
+          exercise: totalExercise,
+          isToday: true,
+        },
+      ];
+
+      document.getElementById('weekly-bar-chart').innerHTML = sevenDays
+        .map((d) => {
+          const wPct = Math.min(100, Math.round((d.water / appState.goals.water) * 100));
+          const sPct = Math.min(100, Math.round((d.sleep / appState.goals.sleep) * 100));
+          const ePct = Math.min(100, Math.round((d.exercise / appState.goals.exercise) * 100));
+
+          return `
+            <div class="flex flex-col items-center gap-2.5">
+              <div class="w-full flex items-end justify-center gap-1 sm:gap-1.5 h-44">
+                <div title="Water: ${d.water} glasses (${wPct}%)" class="w-2.5 sm:w-4 bg-sky-500 rounded-t-md progress-fill" style="height: ${Math.max(8, wPct)}%"></div>
+                <div title="Sleep: ${d.sleep} hrs (${sPct}%)" class="w-2.5 sm:w-4 bg-indigo-500 rounded-t-md progress-fill" style="height: ${Math.max(8, sPct)}%"></div>
+                <div title="Exercise: ${d.exercise} mins (${ePct}%)" class="w-2.5 sm:w-4 bg-[#22A699] rounded-t-md progress-fill" style="height: ${Math.max(8, ePct)}%"></div>
+              </div>
+              <span class="text-[11px] sm:text-xs font-extrabold text-center px-2 py-0.5 rounded-md ${
+                d.isToday ? 'bg-[#0F2C2A] text-[#22A699]' : 'text-theme-muted'
+              }">
+                ${d.isToday ? 'Sun' : d.day}
+              </span>
+            </div>
+          `;
+        })
+        .join('');
+
+      document.getElementById('weekly-breakdown-tbody').innerHTML = sevenDays
+        .map((d) => {
+          const wPct = Math.min(100, Math.round((d.water / appState.goals.water) * 100));
+          const sPct = Math.min(100, Math.round((d.sleep / appState.goals.sleep) * 100));
+          const ePct = Math.min(100, Math.round((d.exercise / appState.goals.exercise) * 100));
+          const avg = Math.round((wPct + sPct + ePct) / 3);
+
+          const badgeClass =
+            avg >= 85
+              ? 'bg-emerald-500/15 text-emerald-500'
+              : avg >= 65
+              ? 'bg-teal-500/15 text-[#22A699]'
+              : 'bg-amber-500/15 text-amber-500';
+          const statusLabel = avg >= 85 ? 'Optimal' : avg >= 65 ? 'On Track' : 'Needs Focus';
+
+          return `
+            <tr class="${d.isToday ? 'bg-teal-500/10 font-semibold' : ''}">
+              <td class="py-3 px-4 font-bold text-theme-primary">${d.day}</td>
+              <td class="py-3 px-4 text-sky-500 font-medium">${d.water} / ${appState.goals.water} glasses</td>
+              <td class="py-3 px-4 text-indigo-400 font-medium">${d.sleep} / ${appState.goals.sleep} hrs</td>
+              <td class="py-3 px-4 text-[#22A699] font-medium">${d.exercise} / ${appState.goals.exercise} mins</td>
+              <td class="py-3 px-4 font-extrabold text-theme-primary">${avg}%</td>
+              <td class="py-3 px-4">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold ${badgeClass}">${statusLabel}</span>
+              </td>
+            </tr>
+          `;
+        })
+        .join('');
+    }
+
+    function renderProfileMetrics() {
+      const h = appState.profile?.heightCm || 174;
+      const w = appState.profile?.weightKg || 68;
+      document.getElementById('profile-height').value = h;
+      document.getElementById('profile-weight').value = w;
+
+      const bmi = (w / ((h / 100) * (h / 100))).toFixed(1);
+      document.getElementById('bmi-value-display').textContent = bmi;
+
+      const badge = document.getElementById('bmi-category-badge');
+      if (bmi < 18.5) {
+        badge.textContent = 'Underweight';
+        badge.className = 'inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-500';
+      } else if (bmi < 25) {
+        badge.textContent = 'Healthy / Normal Weight';
+        badge.className = 'inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-500';
+      } else if (bmi < 30) {
+        badge.textContent = 'Overweight';
+        badge.className = 'inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-500';
+      } else {
+        badge.textContent = 'Obese Range';
+        badge.className = 'inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/15 text-[#E85D75]';
+      }
+
+      const recGlasses = Math.max(6, Math.min(16, Math.round((w * 0.033) / 0.25)));
+      document.getElementById('recommended-water-display').textContent = `${recGlasses} Glasses`;
+      document.getElementById('recommended-liters-display').textContent = `~${(recGlasses * 0.25).toFixed(2)} Liters / day`;
+
+      // Sync Protein & Creatine Hydration Calculator UI
+      const nutrition = appState.nutrition || { proteinGoal: 'active', creatinePhase: 'none' };
+      document.getElementById('protein-goal-select').value = nutrition.proteinGoal;
+      document.getElementById('creatine-phase-select').value = nutrition.creatinePhase;
+      document.getElementById('nutrition-weight-pill').textContent = `Synced Body Weight: ${w} kg`;
+
+      const calc = getNutritionCalculation();
+      document.getElementById('protein-range-display').textContent = `${calc.minProtein}g – ${calc.maxProtein}g`;
+      document.getElementById('protein-meal-split').textContent = `~${calc.avgPerMeal}g protein across 4 meals`;
+
+      document.getElementById('creatine-dose-display').textContent = calc.creatineDoseLabel;
+      document.getElementById('creatine-extra-water-display').textContent = `+${calc.creatineExtraMl} ml extra water`;
+      document.getElementById('creatine-phase-caption').textContent = calc.creatineCaption;
+
+      document.getElementById('combined-water-glasses-display').textContent = `${calc.combinedGlasses} Glasses`;
+      document.getElementById('combined-water-liters-display').textContent = `${calc.combinedLiters} L (${calc.combinedGlasses * 250} ml)`;
+      document.getElementById('combined-water-formula').textContent = `Base ${calc.baseWaterMl}ml + ${calc.creatineExtraMl}ml creatine`;
+      document.getElementById('sync-btn-target-preview').textContent = `${calc.combinedGlasses} glasses / ${calc.combinedLiters}L`;
+    }
+
+    function renderTips() {
+      const grid = document.getElementById('tips-cards-grid');
+      const filtered =
+        currentTipCategory === 'All'
+          ? PREVENTIVE_TIPS
+          : PREVENTIVE_TIPS.filter((t) => t.category === currentTipCategory);
+
+      grid.innerHTML = filtered
+        .map(
+          (tip) => `
+          <div class="surface-card rounded-2xl p-6 flex flex-col justify-between hover:shadow-md transition">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="px-2.5 py-1 rounded-lg surface-subtle text-[#22A699] font-bold text-[11px]">
+                  ${tip.category}
+                </span>
+                <span class="text-[11px] font-semibold text-theme-muted">${tip.tag}</span>
+              </div>
+              <h4 class="text-lg font-extrabold text-theme-primary">${tip.title}</h4>
+              <p class="text-xs sm:text-sm text-theme-muted mt-2 leading-relaxed">${tip.body}</p>
+            </div>
+            <div class="mt-5 pt-3 border-t border-theme flex items-center justify-between">
+              <span class="text-[11px] font-bold text-[#22A699]">UN SDG 3 Preventive Tip</span>
+              <button type="button" onclick="showToast('Habit Tip Saved', 'Added &quot;${tip.title.replace(/'/g, "\\'")}&quot; to today’s focus.', 'mint')" class="text-xs font-bold text-theme-primary hover:text-[#E85D75] transition">
+                Apply Today →
+              </button>
+            </div>
+          </div>
+        `
+        )
+        .join('');
+    }
+
+    function renderAll() {
+      if (!appState) return;
+      renderDashboardAndKPIs();
+      renderLoggers();
+      renderGoalsAndReminders();
+      renderWeeklyReport();
+      renderProfileMetrics();
+      renderTips();
+    }
+
+    // 8. BOOTSTRAP APPLICATION
+    document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+
+    getUsersDB();
+    if (currentUserEmail && getUsersDB()[currentUserEmail]) {
+      activateSession(currentUserEmail);
+    }
+  </script>
+</body>
+</html>
